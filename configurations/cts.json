@@ -1,0 +1,12 @@
+{
+    "endpoint" : "http://services2.perseids.org/exist/rest/db/repository/CTS.xq",
+    "restfull"  : true,
+
+    "cache"  : true,
+    "cache.time" : 25200,
+    "cache.reset_key" : "thibault",
+
+    "ahab.endpoint" : "http://localhost:8080/exist/rest/db/ahab/ahab.xq",
+    "ahab.search" : true,
+    "ahab.permalink" : true
+}

@@ -1,0 +1,4 @@
+Flask==0.10.1
+requests==2.5.0
+requests-cache==0.4.9
+lxml==3.4.2

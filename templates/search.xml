@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Search xmlns="http://github.com/capitains/ahab">
+    <request>
+        <query>{{query}}</query>
+        <urn>{{urn}}</urn>
+    </request>
+    <reply>
+        <results offset="{{start}}" limit="{{limit}}" count="{{count}}">
+            {% for result in results %}
+                <result passage="{{result.version}}" urn="{{result.urn}}">
+                    <text>{{result.text|safe}}</text>
+                </result>
+            {% endfor %}
+        </results>
+    </reply>
+</Search>
