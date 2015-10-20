@@ -22,7 +22,11 @@ class AhabCache(object):
 
     SPACE_NORMALIZER = re.compile(r'\s{2,}')
     ROUTES = [
-        ("/cts/api", "r_xq", ["GET"])
+        ("/cts/api", "r_xq", ["GET"]),
+    ]
+
+    OPTIONAL_ROUTES = [
+        ("/cts/rest/v1.0/<inventory>/<namespace>/<textgroup>", r_getTextGroupCapabilities, ["GET"])
     ]
 
     # TODO add additional params from the cts.json
@@ -41,11 +45,32 @@ class AhabCache(object):
     def init_app
         # TODO copy from HookWorker
 
+   
     def r_xq(self):
+        """ Route which takes any CTS request 
+        :param params: query params to be passed on
+        :type params: dict
+        :return: The XML of the CTS endpoint response and the HTTP status code	
+        :rtype: str,int
+        """
         response, status_code = self.requesting(params=request.args.to_dict())
         return response, status_code, { "Content-Type": "application/xml"}
 
+    def r_getTextGroupCapabilities(inventory, namespace, textgroup):
+        response, status_code = self.requesting(params={
+            "request": "GetCapabilities",
+            "inv": inventory,
+            "urn": makeUrn(namespace, [textgroup])
+        })
+        return response, status_code, { "Content-Type": "application/xml"}
+
     def requesting(self, params):
+        """ Proxies a request to the underlying CTS endpoint
+        :param params: query params
+        :type params: dict
+        :return: the body of the response and the HTTP status code
+        :rtype: str,int
+        """
         try:
             r = requests.get(self.endpoint, params=params)
             if r.status_code != 200:
@@ -77,12 +102,6 @@ def makeUrn(namespace, work=None):
         return "urn:cts:{0}".format(namespace)
 
 
-@ahab.route("/cts/api", methods=["GET"])
-def xq():
-    response = make_response(requesting(configuration["endpoint"], params=request.args.to_dict()))
-    response.headers["Content-Type"] = "application/xml"
-    return response
-
 
 """
 RESTful API
@@ -100,13 +119,6 @@ if configuration["restfull"] is True:
             "urn": makeUrn(namespace)
         })
 
-    @ahab.route("/cts/rest/v1.0/<inventory>/<namespace>/<textgroup>", methods=["GET"])
-    def getTextGroupCapabilities(inventory, namespace, textgroup):
-        return requesting(configuration["endpoint"], params={
-            "request": "GetCapabilities",
-            "inv": inventory,
-            "urn": makeUrn(namespace, [textgroup])
-        })
 
     @ahab.route("/cts/rest/v1.0/<inventory>/<namespace>/<textgroup>/<work>", methods=["GET"])
     def getWorkCapabilities(inventory, namespace, textgroup, work):
