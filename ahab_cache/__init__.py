@@ -1,4 +1,5 @@
 import json
+
 from flask import Blueprint,  abort, request, make_response, render_template, jsonify
 import requests
 import requests_cache
@@ -15,14 +16,51 @@ if configuration["cache"]:
         expire_after=configuration["cache.time"]
     )
 
-space_normalizer = re.compile(r'\s{2,}')
 
 
-def argsToInt(arg):
-    try:
-        return int(arg)
-    except:
-        return None
+class AhabCache(object):
+
+    SPACE_NORMALIZER = re.compile(r'\s{2,}')
+    ROUTES = [
+        ("/cts/api", "r_xq", ["GET"])
+    ]
+
+    # TODO add additional params from the cts.json
+    def __init__(self, app=None, name=None, prefix="/ahab", endpoint="", restful=True ):
+        self.app = app
+        self.name = name
+        self.prefix = prefix
+
+        if self.name is None:
+            self.name = __name__
+
+        if self.app:
+            self.init_app(self.app)
+ 
+
+    def init_app
+        # TODO copy from HookWorker
+
+    def r_xq(self):
+        response, status_code = self.requesting(params=request.args.to_dict())
+        return response, status_code, { "Content-Type": "application/xml"}
+
+    def requesting(self, params):
+        try:
+            r = requests.get(self.endpoint, params=params)
+            if r.status_code != 200:
+                return "", 404
+            return r.text, 200
+        except:
+            return "", 404
+        return "", 404
+   
+    @staticmethod 
+    def argsToInt(arg):
+        try:
+            return int(arg)
+        except:
+            return None
 
 
 def request_wants_json():
@@ -30,15 +68,6 @@ def request_wants_json():
     return best == 'application/json'
 
 
-def requesting(endpoint, params):
-    try:
-        r = requests.get(endpoint, params=params)
-        if r.status_code != 200:
-            abort(404)
-        return r.text
-    except:
-        abort(404)
-    abort(404)
 
 
 def makeUrn(namespace, work=None):
@@ -151,8 +180,8 @@ if "ahab.search" in configuration:
             params=params
         )
         xml = etree.fromstring(response)
-        start = argsToInt(request.args.get("start")) or 1
-        limit = argsToInt(request.args.get("limit")) or 10
+        start = AhabCache.argsToInt(request.args.get("start")) or 1
+        limit = AhabCache.argsToInt(request.args.get("limit")) or 10
 
         results = xml.find(".//ahab:results", {"ahab": "http://github.com/capitains/ahab"})
         resultSet = results.findall("./ahab:result", {"ahab": "http://github.com/capitains/ahab"})
@@ -167,15 +196,15 @@ if "ahab.search" in configuration:
                     "urn": result.find("ahab:urn", {"ahab": "http://github.com/capitains/ahab"}).text,
                     "passage": result.find("ahab:passageUrn", {"ahab": "http://github.com/capitains/ahab"}).text,
                     "text": {
-                        "previous": space_normalizer.sub(
+                        "previous": AhabCache.SPACE_NORMALIZER.sub(
                             "",
                             "".join([x for x in result.find("ahab:text//span[@class='previous']", {"ahab": "http://github.com/capitains/ahab"}).itertext()])
                         ),
-                        "hi": space_normalizer.sub(
+                        "hi": AhabCache.SPACE_NORMALIZER.sub(
                             "",
                             "".join([x for x in result.find("ahab:text//span[@class='hi']", {"ahab": "http://github.com/capitains/ahab"}).itertext()])
                         ),
-                        "after": space_normalizer.sub(
+                        "after": AhabCache.SPACE_NORMALIZER.sub(
                             "",
                             "".join([x for x in result.find("ahab:text//span[@class='following']", {"ahab": "http://github.com/capitains/ahab"}).itertext()])
                         )
